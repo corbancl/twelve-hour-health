@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "十二时辰养生助手",
+  "version": "1.0.0",
+  "description": "根据中国传统十二时辰，提供当前时辰养生建议和对照表",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "十二时辰养生助手",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
