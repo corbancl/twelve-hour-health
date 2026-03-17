@@ -1,8 +1,16 @@
 {
   "manifest_version": 3,
   "name": "十二时辰养生助手",
-  "version": "1.0.0",
-  "description": "根据中国传统十二时辰，提供当前时辰养生建议和对照表",
+  "version": "1.1.0",
+  "description": "根据中国传统十二时辰理论，提供当前时辰养生建议、宜忌对照和时辰切换通知",
+  "permissions": [
+    "notifications",
+    "alarms",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "十二时辰养生助手",

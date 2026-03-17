@@ -180,19 +180,14 @@ function renderCurrentCard() {
   document.getElementById('curName').textContent = cur.name;
   document.getElementById('curOrgan').textContent = cur.organ;
   document.getElementById('curTimeRange').textContent = cur.timeRange;
-  document.getElementById('curTips').innerHTML = `
-    <div class="yi-ji-row">
-      <div class="yi-block">
-        <div class="yi-ji-title yi-title">✅ 宜</div>
-        ${cur.yi.map(t => `<div class="yi-ji-item yi-item">◆ ${t}</div>`).join('')}
-      </div>
-      <div class="yi-block">
-        <div class="yi-ji-title ji-title">🚫 忌</div>
-        ${cur.taboo.map(t => `<div class="yi-ji-item ji-item">◆ ${t}</div>`).join('')}
-      </div>
+  document.getElementById('curYiJi').innerHTML = `
+    <div class="yi-block">
+      <div class="yi-ji-title yi-title">✅ 宜</div>
+      ${cur.yi.map(t => `<div class="yi-ji-item yi-item">◆ ${t}</div>`).join('')}
     </div>
-    <div class="tips-row">
-      ${cur.tips.map(t => `<div class="tip-item"><span class="tip-dot">◆</span><span>${t}</span></div>`).join('')}
+    <div class="yi-block">
+      <div class="yi-ji-title ji-title">🚫 忌</div>
+      ${cur.taboo.map(t => `<div class="yi-ji-item ji-item">◆ ${t}</div>`).join('')}
     </div>
   `;
 }
@@ -230,16 +225,24 @@ function showDetail(idx) {
   const h = HOURS[idx];
   const panel = document.getElementById('detailPanel');
   panel.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="font-size:32px;font-weight:900;color:#f5a623;">${h.gz}</div>
+    <div class="back-btn" id="backBtn">← 返回对照表</div>
+    <div class="detail-header">
+      <div class="detail-gz">${h.gz}</div>
       <div>
-        <div style="font-size:16px;font-weight:700;">${h.name} · ${h.timeRange}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">${h.organ} · ${h.summary}</div>
+        <div style="font-size:15px;font-weight:700;">${h.name} · ${h.timeRange}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">${h.organ} · ${h.summary}</div>
       </div>
     </div>
     <div class="detail-section">
       <h3>🌿 养生要点</h3>
       <ul>${h.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+    </div>
+    <div class="detail-section">
+      <h3>✅ 宜 / 🚫 忌</h3>
+      <ul>
+        ${h.yi.map(t => `<li style="color:rgba(0,230,118,0.85);">${t}</li>`).join('')}
+        ${h.taboo.map(t => `<li style="color:rgba(255,82,82,0.85);">${t}</li>`).join('')}
+      </ul>
     </div>
     <div class="detail-section">
       <h3>🍚 饮食建议</h3>
@@ -253,12 +256,8 @@ function showDetail(idx) {
       <h3>😌 情志调养</h3>
       <ul>${h.emotion.map(t => `<li>${t}</li>`).join('')}</ul>
     </div>
-    <div class="detail-section">
-      <h3>⚠️ 注意事项</h3>
-      <ul>${h.taboo.map(t => `<li>${t}</li>`).join('')}</ul>
-    </div>
   `;
-  // 切换到详情标签
+  panel.querySelector('#backBtn').addEventListener('click', () => switchTab('table'));
   switchTab('detail');
 }
 
@@ -287,16 +286,32 @@ function updateTime() {
   document.getElementById('currentTime').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${formatTime(now)}`;
 }
 
+// 通知开关
+function initNotifyToggle() {
+  const toggle = document.getElementById('notifyToggle');
+  chrome.storage.local.get('notifyEnabled', (res) => {
+    const enabled = res.notifyEnabled !== false; // 默认开启
+    if (enabled) toggle.classList.add('on');
+    else toggle.classList.remove('on');
+  });
+  toggle.addEventListener('click', () => {
+    const isOn = toggle.classList.toggle('on');
+    chrome.storage.local.set({ notifyEnabled: isOn });
+    // 通知 background 更新状态
+    chrome.runtime.sendMessage({ type: 'SET_NOTIFY', enabled: isOn });
+  });
+}
+
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
   renderCurrentCard();
   renderTable();
   updateTime();
+  initNotifyToggle();
   setInterval(updateTime, 1000);
 
   document.getElementById('tabTable').addEventListener('click', () => switchTab('table'));
   document.getElementById('tabDetail').addEventListener('click', () => {
-    // 默认显示当前时辰详情
     if (document.getElementById('detailPanel').innerHTML === '') {
       showDetail(getCurrentHourIndex());
     }
