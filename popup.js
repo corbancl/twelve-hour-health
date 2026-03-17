@@ -277,6 +277,8 @@ function switchTab(tab) {
     detailPanel.style.display = 'block';
     tabTable.classList.remove('active');
     tabDetail.classList.add('active');
+    // 滚动到顶部
+    detailPanel.scrollTop = 0;
   }
 }
 
@@ -289,16 +291,25 @@ function updateTime() {
 // 通知开关
 function initNotifyToggle() {
   const toggle = document.getElementById('notifyToggle');
+  if (!toggle) return;
+
+  // 读取存储状态
   chrome.storage.local.get('notifyEnabled', (res) => {
-    const enabled = res.notifyEnabled !== false; // 默认开启
+    const enabled = res.notifyEnabled !== false;
     if (enabled) toggle.classList.add('on');
     else toggle.classList.remove('on');
   });
+
   toggle.addEventListener('click', () => {
     const isOn = toggle.classList.toggle('on');
     chrome.storage.local.set({ notifyEnabled: isOn });
-    // 通知 background 更新状态
-    chrome.runtime.sendMessage({ type: 'SET_NOTIFY', enabled: isOn });
+    // 安全发送消息（background 可能未激活）
+    try {
+      chrome.runtime.sendMessage({ type: 'SET_NOTIFY', enabled: isOn }, () => {
+        // 忽略 lastError（background 未激活时正常）
+        void chrome.runtime.lastError;
+      });
+    } catch (e) { /* ignore */ }
   });
 }
 
